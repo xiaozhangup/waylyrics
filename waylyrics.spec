@@ -22,7 +22,7 @@ Release:        1
 Summary:        The furry way to show desktop lyrics
 License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
-Source:        %{url}/archive/refs/tags/v%{version}.tar.gz
+Source:        %{url}/archive/refs/tags/%{version}.tar.gz
 BuildRequires:  cargo >= 1.93.0
 BuildRequires:  dbus-devel
 BuildRequires:  gtk4-devel
