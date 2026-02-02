@@ -202,30 +202,10 @@ fn apply_rounded_corners(pixbuf: &gtk::gdk_pixbuf::Pixbuf, radius: f64) -> gtk::
         cr.paint().expect("Failed to paint");
     } // Context 在这里被释放
 
-    // 确保所有绘制操作已完成
-    surface.flush();
-
-    // 获取stride和复制数据
-    let stride = surface.stride();
-    let width_i32 = width;
-    let height_i32 = height;
-
-    // 使用 unsafe 访问数据指针并复制
-    let data = unsafe {
-        let ptr = cairo::ffi::cairo_image_surface_get_data(surface.to_raw_none());
-        let len = (stride * height_i32) as usize;
-        std::slice::from_raw_parts(ptr, len).to_vec()
-    };
-
-    gtk::gdk_pixbuf::Pixbuf::from_bytes(
-        &gtk::glib::Bytes::from(&data),
-        gtk::gdk_pixbuf::Colorspace::Rgb,
-        true,
-        8,
-        width_i32,
-        height_i32,
-        stride,
-    )
+    // 使用 GTK 提供的函数从 Cairo Surface 创建 Pixbuf
+    // 这会自动处理颜色空间转换和 alpha 反预乘
+    gtk::gdk::pixbuf_get_from_surface(&surface, 0, 0, width, height)
+        .expect("Failed to create pixbuf from surface")
 }
 
 async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk_pixbuf::Pixbuf> {
@@ -248,7 +228,7 @@ async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk_pixbuf::Pixbu
     )?;
 
     // 应用圆角效果
-    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 8.0);
+    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 6.0);
 
     Ok(rounded_pixbuf)
 }
