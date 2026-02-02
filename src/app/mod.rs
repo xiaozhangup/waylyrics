@@ -40,15 +40,34 @@ pub fn build_main_window(
     window.set_icon_name(Some(crate::APP_ID_FIXED));
     window.present();
 
+    // 创建应用图标
+    let app_icon = gtk::Image::builder()
+        .icon_name(crate::APP_ID_FIXED)
+        .pixel_size(32)
+        .margin_end(8)
+        .name("lyric-icon")
+        .build();
+
+    // 创建歌词 label
     let lyric_label = Label::builder()
         .label("Waylyrics")
         .name("lyric")
-        .vexpand(true)
+        .hexpand(true)
         .use_markup(true)
         .justify(gtk::Justification::Center)
         .build();
 
     utils::setup_label(&lyric_label, enable_filter_regex);
+
+    // 创建水平 Box 包含图标和 label
+    let lyric_box = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .halign(gtk::Align::Center)
+        .name("lyric-container")
+        .build();
+
+    lyric_box.append(&app_icon);
+    lyric_box.append(&lyric_label);
 
     let verical_box = gtk::Box::builder()
         .baseline_position(gtk::BaselinePosition::Center)
@@ -57,7 +76,7 @@ pub fn build_main_window(
         .vexpand(true)
         .build();
 
-    verical_box.insert_child_after(&lyric_label, gtk::Box::NONE);
+    verical_box.insert_child_after(&lyric_box, gtk::Box::NONE);
 
     window.set_child(Some(&verical_box));
 
@@ -76,14 +95,17 @@ pub fn build_main_window(
 }
 
 pub fn set_lyric_align(window: &Window, align: config::Align) -> Option<()> {
-    let label = get_label(window)?;
-    label.set_halign(align.into());
+    let vbox: gtk::Box = window.child()?.downcast().ok()?;
+    let lyric_box: gtk::Box = vbox.first_child()?.downcast().ok()?;
+    lyric_box.set_halign(align.into());
     window.imp().lyric_align.set(align);
     Some(())
 }
 
 pub fn get_label(window: &Window) -> Option<Label> {
     let vbox: gtk::Box = window.child()?.downcast().ok()?;
-    let lyric_label: Label = vbox.first_child()?.downcast().ok()?;
+    let lyric_box: gtk::Box = vbox.first_child()?.downcast().ok()?;
+    // 跳过第一个子元素（图标），获取第二个子元素（label）
+    let lyric_label: Label = lyric_box.first_child()?.next_sibling()?.downcast().ok()?;
     Some(lyric_label)
 }

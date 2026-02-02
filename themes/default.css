@@ -17,11 +17,21 @@ columnview#search-window-column listview row {
   padding-bottom: 3px;
 }
 
+/* 歌词容器 */
+box#lyric-container {
+  padding: 6px 16px 6px 12px;
+  background-color: hsla(0, 0%, 0%, 0.3);
+  border-radius: 32px;
+}
+
+/* 歌词图标 */
+image#lyric-icon {
+  opacity: 0.9;
+  margin-end: 8px;
+}
+
 /* 歌词标签 */
 label#lyric {
-  padding: 4px 12px;
   color: hsl(0, 0%, 100%);
-  background-color: hsla(0, 0%, 0%, 0.3);
-  border-radius: 24px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
 }
