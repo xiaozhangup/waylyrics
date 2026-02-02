@@ -70,13 +70,16 @@ fn set_lyric(
         .map(|LyricLineOwned { text, .. }| text.as_str().trim())
         .unwrap_or_default();
 
+    let primary_text = if primary_text.is_empty() { "......" } else { primary_text };
+
     // 从配置中读取字体大小
     let primary_font_size = window.imp().primary_font_size.get();
     let secondary_font_size = window.imp().secondary_font_size.get();
 
     let label_text = if let Some(secondary_lyric) = secondary {
         let secondary_text = secondary_lyric.text.as_str().trim();
-        if secondary_text.is_empty() {
+        let secondary_text = if secondary_text.is_empty() { "......" } else { secondary_text };
+        if secondary_text == "......" && primary_text != "......" {
             glib::markup_escape_text(primary_text).to_string()
         } else {
             // 使用markup格式，primary_text用大字号，secondary_text用小字号

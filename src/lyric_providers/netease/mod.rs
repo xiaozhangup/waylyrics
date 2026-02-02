@@ -130,7 +130,7 @@ impl super::LyricParse for Netease {
                     .map(|o| o.start_time)
             }) {
                 tlyric.push(LyricLineOwned {
-                    text: String::default(),
+                    text: "......".to_string(),
                     start_time: next_line_time,
                 });
             }

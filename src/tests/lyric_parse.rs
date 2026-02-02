@@ -150,7 +150,7 @@ Author: poly000
         assert_eq!(
             lyrics.next().map(LyricLine::<'_>::into_owned),
             Some(LyricLineOwned {
-                text: "".into(),
+                text: "......".into(),
                 start_time: Duration::from_millis(2062),
             })
         );

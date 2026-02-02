@@ -24,7 +24,7 @@ pub fn lrc_iter<'a>(
             lrc_nom::LrcItem::Metadata(_) => None,
             lrc_nom::LrcItem::Lyric(lyric, timestamps) => {
                 Some(timestamps.into_iter().map(|timestamp| LyricLine {
-                    text: lyric.trim(),
+                    text: if lyric.trim().is_empty() { "......" } else { lyric.trim() },
                     start_time: Duration::from_millis(timestamp as _),
                 }))
             }
