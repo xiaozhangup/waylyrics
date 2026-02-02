@@ -74,5 +74,5 @@ export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
 %{_datadir}/locale/*/LC_MESSAGES/%{name}.mo
 
 %changelog
-* Sun Feb 02 2026 xiaozhangup <xiaozhangup@gmail.com> - 0.3.21-0
+* Sun Feb 01 2026 xiaozhangup <xiaozhangup@gmail.com> - 0.3.21-1
 - Initial build
