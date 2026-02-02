@@ -18,7 +18,7 @@
 
 Name:           waylyrics
 Version:        0.3.22
-Release:        1
+Release:        %autorelease
 Summary:        The furry way to show desktop lyrics
 License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
