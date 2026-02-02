@@ -22,6 +22,7 @@ Release:        1
 Summary:        The furry way to show desktop lyrics
 License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
+Source:        %{url}/archive/refs/tags/v%{version}.tar.gz
 BuildRequires:  cargo >= 1.93.0
 BuildRequires:  dbus-devel
 BuildRequires:  gtk4-devel
@@ -34,6 +35,7 @@ BuildRequires:  gettext
 The furry way to show desktop lyrics, and simple universal desktop lyrics made with GTK4 and love.
 
 %prep
+%autosetup
 
 %build
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
@@ -73,3 +75,5 @@ cargo test --release --features=offline-test
 %{_datadir}/locale/*/LC_MESSAGES/%{name}.mo
 
 %changelog
+* Sun Feb 02 2026 xiaozhangup <xiaozhangup@users.noreply.github.com> - 0.3.21-1
+- Release 0.3.21
