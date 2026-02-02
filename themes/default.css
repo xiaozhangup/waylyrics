@@ -19,7 +19,7 @@ columnview#search-window-column listview row {
 
 /* 歌词容器 */
 box#lyric-container {
-  padding: 6px 16px 6px 12px;
+  padding: 6px 16px 6px 16px;
   background-color: hsla(0, 0%, 0%, 0.3);
   border-radius: 32px;
 }
@@ -28,6 +28,12 @@ box#lyric-container {
 image#lyric-icon {
   opacity: 0.9;
   margin-end: 8px;
+}
+
+/* 封面图片 */
+image#cover-image {
+  margin-start: 8px;
+  border-radius: 4px;
 }
 
 /* 歌词标签 */

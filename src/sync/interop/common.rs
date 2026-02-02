@@ -29,6 +29,9 @@ pub async fn update_lyric(
     };
 
     crate::sync::utils::clean_lyric(window);
+    
+    // 更新封面图片
+    app::set_cover_image(window, track_meta.art_url.as_deref());
 
     if window.imp().cache_lyrics.get() {
         cache::fetch_lyric_cached(track_meta, ignore_cache, window).await?

@@ -20,6 +20,7 @@ pub struct TrackMeta {
     pub album: Option<String>,
     pub artists: Option<Vec<String>>,
     pub length: Option<Duration>,
+    pub art_url: Option<String>,
 }
 
 #[derive(Clone, Debug, Default)]

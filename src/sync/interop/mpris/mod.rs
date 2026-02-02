@@ -84,6 +84,7 @@ impl TryFrom<Metadata> for TrackMeta {
             .artists()
             .map(|v| v.iter().map(ToString::to_string).collect());
         let length = meta.length();
+        let art_url = meta.art_url().map(str::to_string);
 
         Ok(Self {
             unique_song_id: track_id.map(|id| id.to_string()),
@@ -91,6 +92,7 @@ impl TryFrom<Metadata> for TrackMeta {
             album,
             artists,
             length,
+            art_url,
         })
     }
 }

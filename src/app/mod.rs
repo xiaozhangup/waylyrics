@@ -59,6 +59,16 @@ pub fn build_main_window(
 
     utils::setup_label(&lyric_label, enable_filter_regex);
 
+    // 创建封面图标（右侧）
+    let cover_image = gtk::Image::builder()
+        .pixel_size(32)
+        .margin_start(8)
+        .name("cover-image")
+        .build();
+    
+    // 设置默认灰色背景
+    cover_image.set_icon_name(Some("image-missing"));
+
     // 创建水平 Box 包含图标和 label
     let lyric_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
@@ -68,6 +78,10 @@ pub fn build_main_window(
 
     lyric_box.append(&app_icon);
     lyric_box.append(&lyric_label);
+    lyric_box.append(&cover_image);
+
+    // 保存封面图标的引用
+    window.imp().cover_image.set(cover_image).ok();
 
     let verical_box = gtk::Box::builder()
         .baseline_position(gtk::BaselinePosition::Center)
@@ -108,4 +122,133 @@ pub fn get_label(window: &Window) -> Option<Label> {
     // 跳过第一个子元素（图标），获取第二个子元素（label）
     let lyric_label: Label = lyric_box.first_child()?.next_sibling()?.downcast().ok()?;
     Some(lyric_label)
+}
+
+pub fn set_cover_image(window: &Window, art_url: Option<&str>) {
+    use gtk::gdk_pixbuf::Pixbuf;
+    
+    let Some(cover_image) = window.imp().cover_image.get() else {
+        return;
+    };
+
+    match art_url {
+        Some(url) if url.starts_with("file://") => {
+            // 本地文件
+            if let Some(path) = url::Url::parse(url).ok().and_then(|u| u.to_file_path().ok()) {
+                if let Ok(pixbuf) = Pixbuf::from_file_at_scale(&path, 32, 32, true) {
+                    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 8.0);
+                    cover_image.set_from_pixbuf(Some(&rounded_pixbuf));
+                    return;
+                }
+            }
+            // 加载失败，显示灰色占位图
+            cover_image.set_icon_name(Some("image-missing"));
+        }
+        Some(url) if url.starts_with("http://") || url.starts_with("https://") => {
+            // 网络图片 - 异步加载
+            let cover_image_weak = cover_image.downgrade();
+            let url = url.to_string();
+            crate::glib_spawn!(async move {
+                match load_image_from_url(&url).await {
+                    Ok(pixbuf) => {
+                        if let Some(cover_image) = cover_image_weak.upgrade() {
+                            cover_image.set_from_pixbuf(Some(&pixbuf));
+                        }
+                    }
+                    Err(_) => {
+                        if let Some(cover_image) = cover_image_weak.upgrade() {
+                            cover_image.set_icon_name(Some("image-missing"));
+                        }
+                    }
+                }
+            });
+        }
+        _ => {
+            // 没有封面或不支持的格式，显示灰色占位图
+            cover_image.set_icon_name(Some("image-missing"));
+        }
+    }
+}
+
+fn apply_rounded_corners(pixbuf: &gtk::gdk_pixbuf::Pixbuf, radius: f64) -> gtk::gdk_pixbuf::Pixbuf {
+    use gtk::cairo;
+
+    let width = pixbuf.width();
+    let height = pixbuf.height();
+
+    let surface = cairo::ImageSurface::create(cairo::Format::ARgb32, width, height)
+        .expect("Failed to create surface");
+
+    {
+        let cr = cairo::Context::new(&surface).expect("Failed to create context");
+
+        // 创建圆角路径
+        let x = 0.0;
+        let y = 0.0;
+        let w = width as f64;
+        let h = height as f64;
+
+        cr.new_sub_path();
+        cr.arc(x + w - radius, y + radius, radius, -std::f64::consts::PI / 2.0, 0.0);
+        cr.arc(x + w - radius, y + h - radius, radius, 0.0, std::f64::consts::PI / 2.0);
+        cr.arc(x + radius, y + h - radius, radius, std::f64::consts::PI / 2.0, std::f64::consts::PI);
+        cr.arc(x + radius, y + radius, radius, std::f64::consts::PI, 3.0 * std::f64::consts::PI / 2.0);
+        cr.close_path();
+
+        cr.clip();
+
+        // 绘制原始图片
+        cr.set_source_pixbuf(pixbuf, 0.0, 0.0);
+        cr.paint().expect("Failed to paint");
+    } // Context 在这里被释放
+
+    // 确保所有绘制操作已完成
+    surface.flush();
+
+    // 获取stride和复制数据
+    let stride = surface.stride();
+    let width_i32 = width;
+    let height_i32 = height;
+
+    // 使用 unsafe 访问数据指针并复制
+    let data = unsafe {
+        let ptr = cairo::ffi::cairo_image_surface_get_data(surface.to_raw_none());
+        let len = (stride * height_i32) as usize;
+        std::slice::from_raw_parts(ptr, len).to_vec()
+    };
+
+    gtk::gdk_pixbuf::Pixbuf::from_bytes(
+        &gtk::glib::Bytes::from(&data),
+        gtk::gdk_pixbuf::Colorspace::Rgb,
+        true,
+        8,
+        width_i32,
+        height_i32,
+        stride,
+    )
+}
+
+async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk_pixbuf::Pixbuf> {
+    use gtk::glib;
+    
+    // 在tokio运行时中下载图片
+    let url_owned = url.to_string();
+    let bytes = crate::TOKIO_RUNTIME.spawn(async move {
+        let response = reqwest::get(&url_owned).await?;
+        response.bytes().await.map_err(|e| anyhow::anyhow!("{}", e))
+    }).await??;
+
+    // 在GLib主线程中创建Pixbuf
+    let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_stream_at_scale(
+        &gtk::gio::MemoryInputStream::from_bytes(&glib::Bytes::from(&bytes)),
+        32,
+        32,
+        true,
+        gtk::gio::Cancellable::NONE,
+    )?;
+
+    // 应用圆角效果
+    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 8.0);
+
+    Ok(rounded_pixbuf)
 }

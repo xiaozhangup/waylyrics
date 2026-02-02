@@ -45,6 +45,7 @@ pub struct Window {
     pub import_lyric_menu: gio::Menu,
     #[cfg(feature = "export-lyric")]
     pub export_lyric_menu: gio::Menu,
+    pub cover_image: OnceLock<gtk::Image>,
 }
 
 #[glib::object_subclass]

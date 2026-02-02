@@ -3,7 +3,6 @@ use std::time::{Duration, SystemTime};
 
 use anyhow::Result;
 use gtk::glib::subclass::types::ObjectSubclassIsExt;
-use tokio::runtime::Runtime;
 
 use windows::Media::Control::{
     GlobalSystemMediaTransportControlsSession as GSMTCSession,
@@ -20,22 +19,20 @@ use crate::sync::interop::{OsImp, PlayerId, PlayerStatus};
 use crate::sync::lyric::scroll::refresh_lyric;
 use crate::sync::TrackMeta;
 use crate::utils::reset_lyric_labels;
+use crate::TOKIO_RUNTIME;
 
 pub struct GSMTC;
 
 static SESSION: RwLock<Option<GSMTCSession>> = RwLock::new(None);
-static TOKIO_RUNTIME: OnceLock<Runtime> = OnceLock::new();
 
 fn media_properties(session: &GSMTCSession) -> Result<GSMTCSessionMediaProperties> {
-    let runtime = TOKIO_RUNTIME.get_or_init(|| Runtime::new().unwrap());
-    Ok(runtime.block_on(async { session.TryGetMediaPropertiesAsync()?.await })?)
+    Ok(TOKIO_RUNTIME.block_on(async { session.TryGetMediaPropertiesAsync()?.await })?)
 }
 
 fn session_manager() -> &'static GSMTCSessionManager {
     static SESSION_MANAGER: OnceLock<GSMTCSessionManager> = OnceLock::new();
     SESSION_MANAGER.get_or_init(|| {
-        let runtime = TOKIO_RUNTIME.get_or_init(|| Runtime::new().unwrap());
-        runtime.block_on(async move {
+        TOKIO_RUNTIME.block_on(async move {
             GSMTCSessionManager::RequestAsync()
                 .expect("cannot request GSMTC Session Manager!")
                 .await
@@ -164,6 +161,7 @@ impl OsImp for GSMTC {
             album,
             artists: artist.map(|a| vec![a]),
             length,
+            art_url: None, // TODO: 从SMTC获取封面URL
         };
 
         if need_fetch_lyric(&new_trackmeta) {
