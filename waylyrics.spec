@@ -34,7 +34,7 @@ BuildRequires:  gettext
 The furry way to show desktop lyrics, and simple universal desktop lyrics made with GTK4 and love.
 
 %prep
-# Building from current directory, no preparation needed
+%autosetup
 
 %build
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
