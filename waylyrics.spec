@@ -34,9 +34,8 @@ BuildRequires:  openssl-devel
 %description
 The furry way to show desktop lyrics, and simple universal desktop lyrics made with GTK4 and love.
 
-
 %prep
-# Using current directory as source
+# Building from current directory, no preparation needed
 
 %build
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
@@ -76,3 +75,5 @@ export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
 %{_datadir}/locale/*/LC_MESSAGES/%{name}.mo
 
 %changelog
+* Sun Feb 02 2026 xiaozhangup <xiaozhangup@gmail.com> - 0.3.21-0
+- Initial build
