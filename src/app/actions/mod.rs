@@ -13,7 +13,7 @@ use crate::utils::bind_shortcut;
 
 use glib_macros::clone;
 use gtk::gio::SimpleAction;
-use gtk::glib::{self, Variant, VariantTy};
+use gtk::glib::{self, VariantTy};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::Application;
@@ -103,29 +103,19 @@ pub fn register_set_lyric_align(wind: &Window) {
 }
 
 pub fn register_set_label(wind: &Window) {
-    let action = SimpleAction::new("set-label", Some(VariantTy::STRING_ARRAY));
+    let action = SimpleAction::new("set-label", Some(VariantTy::STRING));
     action.connect_activate(clone!(
         #[weak]
         wind,
         move |_, args| {
-            let Some((position, text)) = args.and_then(extract_str_array) else {
+            let Some(text) = args.and_then(|v| v.str()) else {
                 return;
             };
-            get_label(&wind, position).set_label(text);
+            if let Some(label) = get_label(&wind) {
+                label.set_label(text);
+            }
         }
     ));
     wind.add_action(&action);
 }
 
-fn extract_str_array(variant: &Variant) -> Option<(&str, &str)> {
-    let mut iter = variant.array_iter_str().ok()?;
-    let position = iter.next()?;
-
-    if !["above", "below"].contains(&position) {
-        return None;
-    }
-
-    let text = iter.next()?;
-
-    Some((position, text))
-}

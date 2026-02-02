@@ -23,6 +23,8 @@ impl Window {
         length_toleration_ms: u128,
         show_default_text_on_idle: bool,
         show_lyric_on_pause: bool,
+        primary_font_size: u32,
+        secondary_font_size: u32,
     ) -> Self {
         let window: Self = Object::builder().property("application", app).build();
         let imp = window.imp();
@@ -33,6 +35,8 @@ impl Window {
         imp.length_toleration_ms.set(length_toleration_ms);
         imp.show_default_text_on_idle.set(show_default_text_on_idle);
         imp.show_lyric_on_pause.set(show_lyric_on_pause);
+        imp.primary_font_size.set(primary_font_size);
+        imp.secondary_font_size.set(secondary_font_size);
 
         window
     }

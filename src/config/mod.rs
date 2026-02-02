@@ -128,6 +128,12 @@ pub struct Config {
 
     /// Whether to use <name>-dark.css when system is in dark mode
     pub theme_dark_switch: bool,
+
+    /// Primary lyric font size in points (default: 12)
+    pub primary_font_size: u32,
+
+    /// Secondary lyric font size in points (default: 10)
+    pub secondary_font_size: u32,
 }
 
 /// check [GTK+'s official document](https://docs.gtk.org/gtk4/ctor.ShortcutTrigger.parse_string.html) for trigger format
@@ -183,6 +189,8 @@ impl Default for Config {
             qqmusic: QQMusicConfig::default(),
             color_scheme: ColorScheme::default(),
             theme_dark_switch: false,
+            primary_font_size: 12,
+            secondary_font_size: 10,
         }
     }
 }

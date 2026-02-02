@@ -24,8 +24,9 @@ pub fn reset_lyric_labels(window: &Window, tip: Option<&str>) {
         }
     });
 
-    get_label(window, "above").set_label(tip);
-    get_label(window, "below").set_label("");
+    if let Some(label) = get_label(window) {
+        label.set_label(tip);
+    }
 }
 
 pub fn parse_time(time: &str) -> Result<Duration, ParseError> {

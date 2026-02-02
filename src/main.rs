@@ -146,19 +146,12 @@ fn main() -> Result<glib::ExitCode> {
                         return;
                     };
                     match signal_name {
-                        "SetAboveLabel" => {
+                        "SetAboveLabel" | "SetBelowLabel" => {
                             let child = parameters.child_value(0);
                             let Some(text) = child.str() else {
                                 return;
                             };
-                            _ = sender.send_blocking(UIAction::SetAboveLabel(text.to_string()));
-                        }
-                        "SetBelowLabel" => {
-                            let child = parameters.child_value(0);
-                            let Some(text) = child.str() else {
-                                return;
-                            };
-                            _ = sender.send_blocking(UIAction::SetAboveLabel(text.to_string()));
+                            _ = sender.send_blocking(UIAction::SetLabel(text.to_string()));
                         }
                         _ => warn!("unknown signal: {signal_name}"),
                     }
@@ -205,6 +198,8 @@ fn build_ui(app: &Application) -> Result<()> {
         qqmusic,
         color_scheme,
         theme_dark_switch,
+        primary_font_size,
+        secondary_font_size,
     } = config;
 
     LYRIC_SEARCH_SKIP.store(skip_auto_search, Ordering::Release);
@@ -248,6 +243,8 @@ fn build_ui(app: &Application) -> Result<()> {
         length_toleration_ms,
         show_default_text_on_idle,
         show_lyric_on_pause,
+        primary_font_size,
+        secondary_font_size,
     );
 
     register_sync_task(

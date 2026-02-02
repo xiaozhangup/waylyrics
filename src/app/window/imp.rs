@@ -31,6 +31,9 @@ pub struct Window {
     pub lyric_offset_ms: Cell<i64>,
     pub length_toleration_ms: Cell<u128>,
 
+    pub primary_font_size: Cell<u32>,
+    pub secondary_font_size: Cell<u32>,
+
     // widgets
     pub headerbar: gtk::HeaderBar,
     pub menubutton: gtk::MenuButton,

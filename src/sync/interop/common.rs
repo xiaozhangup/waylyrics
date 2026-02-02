@@ -57,8 +57,12 @@ pub fn register_sync_task(wind: WeakRef<Window>, interval: Duration, auto_connec
                 }
             }
             Err(PlayerStatus::Unsupported(kind)) => {
-                app::get_label(&window, "above").set_label("Unsupported Player");
-                app::get_label(&window, "below").set_label(kind);
+                if let Some(label) = app::get_label(&window) {
+                    label.set_markup(&format!(
+                        "<span size=\"x-large\">Unsupported Player</span>\n<span size=\"large\">{}</span>",
+                        glib::markup_escape_text(kind)
+                    ));
+                }
 
                 clean_lyric(&window);
                 error!(kind);

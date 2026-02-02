@@ -22,6 +22,8 @@ pub fn build_main_window(
     length_toleration_ms: u128,
     show_default_text_on_idle: bool,
     show_lyric_on_pause: bool,
+    primary_font_size: u32,
+    secondary_font_size: u32,
 ) -> Window {
     let window = Window::new(
         app,
@@ -29,6 +31,8 @@ pub fn build_main_window(
         length_toleration_ms,
         show_default_text_on_idle,
         show_lyric_on_pause,
+        primary_font_size,
+        secondary_font_size,
     );
 
     window.set_size_request(500, WINDOW_MIN_HEIGHT);
@@ -36,21 +40,15 @@ pub fn build_main_window(
     window.set_icon_name(Some(crate::APP_ID_FIXED));
     window.present();
 
-    let above_label = Label::builder()
+    let lyric_label = Label::builder()
         .label("Waylyrics")
-        .name("above")
+        .name("lyric")
         .vexpand(true)
-        .build();
-    let below_label = Label::builder()
-        .label("")
-        .name("below")
-        .vexpand(true)
-        .visible(false)
+        .use_markup(true)
+        .justify(gtk::Justification::Center)
         .build();
 
-    for label in [&above_label, &below_label] {
-        utils::setup_label(label, enable_filter_regex);
-    }
+    utils::setup_label(&lyric_label, enable_filter_regex);
 
     let verical_box = gtk::Box::builder()
         .baseline_position(gtk::BaselinePosition::Center)
@@ -59,8 +57,7 @@ pub fn build_main_window(
         .vexpand(true)
         .build();
 
-    verical_box.insert_child_after(&above_label, gtk::Box::NONE);
-    verical_box.insert_child_after(&below_label, Some(&above_label));
+    verical_box.insert_child_after(&lyric_label, gtk::Box::NONE);
 
     window.set_child(Some(&verical_box));
 
@@ -79,25 +76,14 @@ pub fn build_main_window(
 }
 
 pub fn set_lyric_align(window: &Window, align: config::Align) -> Option<()> {
-    let labels = get_labels(window)?;
-    for label in labels {
-        label.set_halign(align.into());
-    }
+    let label = get_label(window)?;
+    label.set_halign(align.into());
     window.imp().lyric_align.set(align);
     Some(())
 }
 
-fn get_labels(window: &Window) -> Option<[Label; 2]> {
+pub fn get_label(window: &Window) -> Option<Label> {
     let vbox: gtk::Box = window.child()?.downcast().ok()?;
-    let above_label: Label = vbox.first_child()?.downcast().ok()?;
-    let below_label: Label = vbox.last_child()?.downcast().ok()?;
-    Some([above_label, below_label])
-}
-
-pub fn get_label(window: &Window, position: &str) -> Label {
-    get_labels(window)
-        .expect("cannot find labels")
-        .into_iter()
-        .find(|label| label.widget_name() == position)
-        .unwrap()
+    let lyric_label: Label = vbox.first_child()?.downcast().ok()?;
+    Some(lyric_label)
 }
