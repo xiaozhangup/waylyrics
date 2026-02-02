@@ -24,7 +24,7 @@ License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
 BuildRequires:  cargo >= 1.76.0
 BuildRequires:  cargo-packaging
-BuildRequires:  dbus-1-devel
+BuildRequires:  dbus-devel
 BuildRequires:  gettext
 BuildRequires:  gtk4-devel
 BuildRequires:  graphene-devel
@@ -34,7 +34,6 @@ BuildRequires:  openssl-devel
 %description
 The furry way to show desktop lyrics, and simple universal desktop lyrics made with GTK4 and love.
 
-%lang_package
 
 %prep
 # Using current directory as source
@@ -55,15 +54,12 @@ install -Dm644 "metainfo/io.github.waylyrics.Waylyrics.gschema.xml" -t %{buildro
 cp -r res/icons %{buildroot}%{_datadir}/icons
 
 # Locale files
-(
-    cd locales
-    for po in $(find . -type f -name '*.po')
-    do
-        mkdir -p %{buildroot}%{_datadir}"/locale/${po#/*}"
-        msgfmt -o %{buildroot}%{_datadir}"/locale/${po%.po}.mo" ${po}
-    done
-)
-%find_lang %{name} %{name}.lang
+install -dm755 %{buildroot}%{_datadir}/locale
+for po in locales/*/LC_MESSAGES/*.po; do
+    locale=$(basename $(dirname $(dirname $po)))
+    mkdir -p %{buildroot}%{_datadir}/locale/$locale/LC_MESSAGES
+    msgfmt -o %{buildroot}%{_datadir}/locale/$locale/LC_MESSAGES/%{name}.mo $po
+done
 
 %check
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
@@ -77,7 +73,6 @@ export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
 %{_datadir}/applications/io.github.waylyrics.Waylyrics.desktop
 %{_datadir}/glib-2.0/schemas/io.github.waylyrics.Waylyrics.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/io.github.waylyrics.Waylyrics.svg
-
-%files lang -f %{name}.lang
+%{_datadir}/locale/*/LC_MESSAGES/%{name}.mo
 
 %changelog
