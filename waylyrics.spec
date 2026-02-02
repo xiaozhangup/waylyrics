@@ -18,12 +18,11 @@
 
 Name:           waylyrics
 Version:        0.3.21
-Release:        0
+Release:        1
 Summary:        The furry way to show desktop lyrics
 License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
 BuildRequires:  cargo >= 1.76.0
-BuildRequires:  cargo-packaging
 BuildRequires:  dbus-devel
 BuildRequires:  gettext
 BuildRequires:  gtk4-devel
