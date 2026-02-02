@@ -24,7 +24,6 @@ License:        MIT
 URL:            https://github.com/xiaozhangup/waylyrics
 BuildRequires:  cargo >= 1.76.0
 BuildRequires:  dbus-devel
-BuildRequires:  gettext
 BuildRequires:  gtk4-devel
 BuildRequires:  graphene-devel
 BuildRequires:  mimalloc-devel
@@ -38,11 +37,11 @@ The furry way to show desktop lyrics, and simple universal desktop lyrics made w
 
 %build
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
-%{cargo_build}
+cargo build --release
 
 %install
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
-%{cargo_install}
+install -Dm755 target/release/%{name} -t %{buildroot}%{_bindir}/
 
 install -dm755 %{buildroot}%{_datadir}/waylyrics
 cp -r themes %{buildroot}%{_datadir}/waylyrics/
@@ -61,7 +60,7 @@ done
 
 %check
 export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
-%{cargo_test} --features=offline-test
+cargo test --release --features=offline-test
 
 %files
 %license LICENSE
@@ -74,5 +73,5 @@ export WAYLYRICS_THEME_PRESETS_DIR=%{_datadir}/waylyrics/themes
 %{_datadir}/locale/*/LC_MESSAGES/%{name}.mo
 
 %changelog
-* Sun Feb 01 2026 xiaozhangup <xiaozhangup@gmail.com> - 0.3.21-1
-- Initial build
+* Sun Feb 02 2026 xiaozhangup <xiaozhangup@gmail.com> - 0.3.21-1
+- Initial build from current directory
