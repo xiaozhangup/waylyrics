@@ -1,4 +1,4 @@
-# Waylyrics
+# Waylyrics Island
 
 <div align="center">
   <img src="img/waylyrics.png" style="height: 200px; width: auto;"></img>
@@ -32,7 +32,10 @@
 
 ## 介绍
 
-Waylyrics 是一款支持 Linux/Windows 的桌面歌词软件。
+Waylyrics Island 是一款支持 Linux/Windows 的桌面歌词软件。  
+本分支实现了类似 Lyricify 的灵动词岛的功能  
+**修改大部分由 AI 完成，人类只负责监督其产出的代码和调整一些细节**  
+**主题和配置和原版有些变动，不过配置文件会自动更新，css 需要手动更新**
 
 关键特性：
 - 基于 GTK 4
