@@ -86,7 +86,7 @@ pub fn build_main_window(
     let verical_box = gtk::Box::builder()
         .baseline_position(gtk::BaselinePosition::Center)
         .orientation(gtk::Orientation::Vertical)
-        .valign(gtk::Align::Center)
+        .valign(gtk::Align::Start)
         .vexpand(true)
         .build();
 
@@ -125,6 +125,7 @@ pub fn get_label(window: &Window) -> Option<Label> {
 }
 
 pub fn set_cover_image(window: &Window, art_url: Option<&str>) {
+    use gtk::gdk::Texture;
     use gtk::gdk_pixbuf::Pixbuf;
     
     let Some(cover_image) = window.imp().cover_image.get() else {
@@ -133,11 +134,15 @@ pub fn set_cover_image(window: &Window, art_url: Option<&str>) {
 
     match art_url {
         Some(url) if url.starts_with("file://") => {
-            // 本地文件
+            // 本地文件 - 直接让 GTK 加载和缩放
             if let Some(path) = url::Url::parse(url).ok().and_then(|u| u.to_file_path().ok()) {
-                if let Ok(pixbuf) = Pixbuf::from_file_at_scale(&path, 32, 32, true) {
-                    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 8.0);
-                    cover_image.set_from_pixbuf(Some(&rounded_pixbuf));
+                if let Ok(pixbuf) = Pixbuf::from_file(&path) {
+                    // 根据图片尺寸计算圆角半径（假设最终显示为32px，圆角8px，则比例为8/32=0.25）
+                    let min_dimension = pixbuf.width().min(pixbuf.height()) as f64;
+                    let radius = min_dimension * 0.25; // 圆角占图片边长的25%
+                    let rounded_pixbuf = apply_rounded_corners(&pixbuf, radius);
+                    let texture = Texture::for_pixbuf(&rounded_pixbuf);
+                    cover_image.set_paintable(Some(&texture));
                     return;
                 }
             }
@@ -150,9 +155,9 @@ pub fn set_cover_image(window: &Window, art_url: Option<&str>) {
             let url = url.to_string();
             crate::glib_spawn!(async move {
                 match load_image_from_url(&url).await {
-                    Ok(pixbuf) => {
+                    Ok(texture) => {
                         if let Some(cover_image) = cover_image_weak.upgrade() {
-                            cover_image.set_from_pixbuf(Some(&pixbuf));
+                            cover_image.set_paintable(Some(&texture));
                         }
                     }
                     Err(_) => {
@@ -208,7 +213,7 @@ fn apply_rounded_corners(pixbuf: &gtk::gdk_pixbuf::Pixbuf, radius: f64) -> gtk::
         .expect("Failed to create pixbuf from surface")
 }
 
-async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk_pixbuf::Pixbuf> {
+async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk::Texture> {
     use gtk::glib;
     
     // 在tokio运行时中下载图片
@@ -218,17 +223,19 @@ async fn load_image_from_url(url: &str) -> anyhow::Result<gtk::gdk_pixbuf::Pixbu
         response.bytes().await.map_err(|e| anyhow::anyhow!("{}", e))
     }).await??;
 
-    // 在GLib主线程中创建Pixbuf
-    let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_stream_at_scale(
+    // 在GLib主线程中创建Pixbuf（加载原图，不缩放）
+    let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_stream(
         &gtk::gio::MemoryInputStream::from_bytes(&glib::Bytes::from(&bytes)),
-        32,
-        32,
-        true,
         gtk::gio::Cancellable::NONE,
     )?;
 
-    // 应用圆角效果
-    let rounded_pixbuf = apply_rounded_corners(&pixbuf, 6.0);
+    // 根据图片尺寸计算圆角半径
+    let min_dimension = pixbuf.width().min(pixbuf.height()) as f64;
+    let radius = min_dimension * 0.25; // 圆角占图片边长的25%
+    let rounded_pixbuf = apply_rounded_corners(&pixbuf, radius);
 
-    Ok(rounded_pixbuf)
+    // 创建 Texture，让 GTK 自己处理缩放
+    let texture = gtk::gdk::Texture::for_pixbuf(&rounded_pixbuf);
+
+    Ok(texture)
 }
